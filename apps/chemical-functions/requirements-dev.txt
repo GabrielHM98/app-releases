@@ -1,0 +1,3 @@
+-r requirements-benchmark.txt
+-r requirements-services.txt
+PyYAML==6.0.3
