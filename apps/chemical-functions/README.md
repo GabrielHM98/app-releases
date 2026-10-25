@@ -12,6 +12,21 @@ All three listen on port 8080 in their own containers. The web service calls the
 
 The model is nine Random Forest classifiers (`forest_leaf3`) on 2,048-bit Morgan fingerprints. It scores recorded CPDat function annotations; it does not certify industrial performance. The current release reuses the fitted model and does not retrain it.
 
+## Folder map
+
+| Area | Responsibility |
+|---|---|
+| `services/` | HTTP APIs, model-serving adapter, and web UI |
+| `engine/` | Frozen chemistry, data preparation, model training, policies, and model-specific dependency pins |
+| `scripts/` | Runtime import, preflight checks, test runner, and smoke checks |
+| `requirements/` | HTTP runtime and development dependency entry points |
+| `tests/` | Automated verification |
+| `runtime/` | Committed checksum lock for model/database artifacts |
+| `docs/` | Pipeline contract, licensing, migration, and historical guides |
+| `data/`, `runs/`, `.runtime/` | Ignored local/generated artifacts |
+
+Root files are the README, `app.yaml`, Dockerfile, Compose configuration, and ignore rules. See [migration](docs/migration.md) when replacing the earlier flat folder.
+
 ## Add this folder to your repo
 
 The ZIP contains `apps/chemical-functions/`. Extract it from the root of your existing `app-releases` clone:
@@ -82,7 +97,7 @@ After installing the runtime, from this app directory:
 
 ```bash
 docker compose up --build -d --wait --wait-timeout 180
-python3 containers/smoke_test.py
+python3 scripts/smoke_test.py
 ```
 
 Open http://localhost:8080. Search `ethanol` or submit `CCO` for a prediction. The model/database are embedded in their respective images; there is no extra database server or writable data volume.
@@ -100,17 +115,17 @@ Your source files, database, saved model, and Docker images remain. `docker comp
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
-python -m pip install -r requirements-dev.txt
-python -m unittest discover -s tests -v
+python -m pip install -r requirements/dev.txt
+python scripts/run_tests.py
 ```
 
-When the runtime is absent, the suite reports the real-artifact service tests as skipped. Release preparation must first run `runtime_artifacts.py verify`; releases must not substitute source-only tests for actual-model integration. The existing `containers/smoke_test.py` checks the public request path through all three containers.
+When the runtime is absent, the suite reports the real-artifact service tests as skipped. Release preparation must first run `runtime_artifacts.py verify`; releases must not substitute source-only tests for actual-model integration. The existing `scripts/smoke_test.py` checks the public request path through all three containers.
 
 ## Source and data scope
 
 The app's catalog uses a pinned historical [CPDat v4.0 article version 5](https://epa.figshare.com/articles/dataset/The_Chemical_and_Products_Database_CPDat_MySQL_Data_File/5352997/5) joined to collected EPA dashboard exports. The accepted catalog contains 8,335 structures and 14,675 structure–function pairs, under the pinned chemistry policy. Unrecorded uses remain unknown. Source identity checks do not experimentally verify a function.
 
-Preparation and benchmark scripts are retained in this folder. The older step-by-step guides are archived under `docs/history/`; they refer to the original starter layout and example files and are not this folder's current installation instructions. The historical `run_collection_demo.sh` also requires its original example export files, which are not packaged here. Use `--help` on the preparation scripts for their current command contracts.
+Preparation, benchmark, policy, and catalog helper files are grouped in `engine/`. They retain their original module names and model dependency pins for artifact compatibility. The older step-by-step guides are archived under `docs/history/`; they refer to the original starter layout and example files and are not this folder's current installation instructions. The historical `docs/history/run_collection_demo.sh` also requires its original example export files, which are not packaged here. Use `--help` on the preparation scripts for their current command contracts.
 
 ## Release boundary
 

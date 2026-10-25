@@ -20,3 +20,5 @@ reports/
 *.pem
 *.key
 *.part
+
+*:Zone.Identifier

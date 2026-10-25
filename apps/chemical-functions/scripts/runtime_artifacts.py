@@ -30,8 +30,13 @@ def digest(path):
     return h.hexdigest()
 
 
+def engine_dir(root):
+    root=Path(root)
+    return root/'engine' if (root/'engine/benchmark.py').is_file() else root
+
+
 def preflight(root):
-    spec=importlib.util.spec_from_file_location('runtime_preflight',ROOT/'containers/preflight.py')
+    spec=importlib.util.spec_from_file_location('runtime_preflight',ROOT/'scripts/preflight.py')
     module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
     return module.check(Path(root))
 
@@ -109,7 +114,10 @@ def install(archive,lock_path,root):
         verify_files(stage,lock)
         # The benchmark implementation and pins must accompany the artifacts.
         for name in ['benchmark.py','requirements-structures.txt','requirements-benchmark.txt']:
-            shutil.copyfile(root/name,stage/name)
+            source=engine_dir(root)/name
+            destination=stage/('engine' if engine_dir(root).name=='engine' else '')/name
+            destination.parent.mkdir(parents=True,exist_ok=True)
+            shutil.copyfile(source,destination)
         result=preflight(stage)
         # Check every destination before publishing any file. Never traverse a symlink.
         for name in FILES:

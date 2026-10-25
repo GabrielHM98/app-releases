@@ -23,11 +23,12 @@ def check(root):
     manifest = json.loads((run/'run_manifest.json').read_text())
     if digest(run/'model_bundle.joblib') != manifest['output_sha256']['model_bundle.joblib']:
         raise ValueError('Model hash does not match its run manifest.')
-    if digest(root/'benchmark.py') != manifest['code_sha256']:
+    engine=root/'engine' if (root/'engine/benchmark.py').is_file() else root
+    if digest(engine/'benchmark.py') != manifest['code_sha256']:
         raise ValueError('benchmark.py differs from the saved model implementation.')
     pins = {}
     for filename in ['requirements-structures.txt', 'requirements-benchmark.txt']:
-        for line in (root/filename).read_text().splitlines():
+        for line in (engine/filename).read_text().splitlines():
             if line and not line.startswith(('#','-r')):
                 name, version = line.split('==')
                 pins[name] = version

@@ -29,3 +29,5 @@ Publish tested images as:
 ```
 
 Record the source commit, runtime lock, and all three registry digests. Treat them as one tested release set when preparing a promotion PR in `paas-releases`. The folder's `app.yaml` does not itself implement workflow discovery, publishing, or cross-repo promotion; those belong in the root shared pipeline.
+
+Docker sets `PYTHONPATH=/app/engine` for the preserved engine module imports. Host tests use `python scripts/run_tests.py`, which adds the same engine import path. Model-specific dependency pins stay beside the frozen benchmark; HTTP/dev entry points live in `requirements/`.

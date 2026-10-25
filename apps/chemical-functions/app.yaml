@@ -23,9 +23,9 @@ components:
     cpus: '2'
 prepare:
   - [python3, scripts/runtime_artifacts.py, fetch, --repository, '{repository}']
-  - [python3, -m, pip, install, -r, requirements-dev.txt]
+  - [python3, -m, pip, install, -r, requirements/dev.txt]
   - [python3, scripts/runtime_artifacts.py, verify]
 checks:
-  - [python3, -m, unittest, discover, -s, tests, -v]
+  - [python3, scripts/run_tests.py]
 integrationChecks:
-  - [python3, containers/smoke_test.py, --url, '{url:web}']
+  - [python3, scripts/smoke_test.py, --url, '{url:web}']

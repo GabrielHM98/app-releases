@@ -28,7 +28,7 @@ def main():
         try:
             ports={service:free_port() for service in ['catalog','predictor','web']}
             env={**os.environ,'PYTHONUNBUFFERED':'1','PYTHONDONTWRITEBYTECODE':'1',
-                 'OPENBLAS_NUM_THREADS':'1','OMP_NUM_THREADS':'1','MKL_NUM_THREADS':'1',
+                 'PYTHONPATH':str(ROOT/'engine'),'OPENBLAS_NUM_THREADS':'1','OMP_NUM_THREADS':'1','MKL_NUM_THREADS':'1',
                  'CATALOG_URL':f'http://127.0.0.1:{ports["catalog"]}',
                  'PREDICTOR_URL':f'http://127.0.0.1:{ports["predictor"]}'}
             for service,port in ports.items():

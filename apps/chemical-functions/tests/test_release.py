@@ -23,10 +23,10 @@ from test_catalog_db import fixture
 
 def project(root):
     for name in ['benchmark.py','requirements-structures.txt','requirements-benchmark.txt']:
-        shutil.copyfile(ROOT/name,root/name)
+        shutil.copyfile(ROOT/'engine'/name,root/name)
     db=root/'data/catalog/chemicals.sqlite3';db.parent.mkdir(parents=True)
     conn=sqlite3.connect(db);conn.execute('PRAGMA foreign_keys=ON')
-    conn.executescript((ROOT/'catalog_schema.sql').read_text());fixture(conn)
+    conn.executescript((ROOT/'engine/catalog_schema.sql').read_text());fixture(conn)
     counts={name:conn.execute('SELECT count(*) FROM '+name).fetchone()[0] for name in ['molecule','substance','function_category','recorded_use','use_evidence']}
     conn.executemany('INSERT INTO catalog_metadata VALUES (?,?)',[('schema_version','1'),('expected_counts',json.dumps(counts))])
     conn.commit();conn.close()
@@ -55,7 +55,7 @@ class RuntimeTests(unittest.TestCase):
     def target(self):
         root=self.base/'target';root.mkdir()
         for name in ['benchmark.py','requirements-structures.txt','requirements-benchmark.txt']:
-            shutil.copyfile(ROOT/name,root/name)
+            shutil.copyfile(ROOT/'engine'/name,root/name)
         return root
 
     def test_runtime_archive_is_reproducible_and_has_only_approved_inputs(self):
@@ -71,6 +71,13 @@ class RuntimeTests(unittest.TestCase):
             checks=runtime.install(result['archive'],self.lock,root)
             self.assertEqual(checks['catalog_counts']['molecule'],1)
         runtime.verify_files(root,runtime.load_lock(self.lock))
+
+    def test_legacy_runtime_installs_into_organized_source_layout(self):
+        result=self.pack();root=self.target();(root/'engine').mkdir()
+        for name in ['benchmark.py','requirements-structures.txt','requirements-benchmark.txt']:
+            (root/name).rename(root/'engine'/name)
+        runtime.install(result['archive'],self.lock,root)
+        self.assertEqual(runtime.preflight(root)['catalog_counts']['molecule'],1)
 
     def test_changed_archive_is_rejected_before_any_files_are_published(self):
         result=self.pack();root=self.target();p=Path(result['archive']);p.write_bytes(p.read_bytes()+b'tamper')
